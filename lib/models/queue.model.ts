@@ -1,12 +1,12 @@
+import { AddSongRequest } from "@/types/requsts";
 import { ObjectId } from "mongodb";
 
 export default interface Queue {
   hostId: ObjectId;
-  hostName: string;
-  requests: any[];
-  queueId: string;
+  requests: Omit<AddSongRequest, "queueId">[];
+  queueId: ObjectId;
   connectedUsers: Array<{
-    id: string;
+    id: ObjectId | string;
     name: string;
   }>;
 }

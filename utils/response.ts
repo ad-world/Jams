@@ -23,3 +23,4 @@ export function buildGenericResponse<T>({
 export function consumeGenericResponse<T>(response: GenericResponse<T>) {
   return response;
 }
+

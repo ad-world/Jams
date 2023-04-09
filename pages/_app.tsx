@@ -39,6 +39,10 @@ const theme: Theme = {
       fontWeight: "600",
       fontSize: "36px",
     },
+    subheading: {
+      fontWeight: "500",
+      fontSize: "24px",
+    },
   },
 };
 

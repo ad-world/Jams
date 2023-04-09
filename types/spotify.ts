@@ -8,16 +8,53 @@ type InternalSpotifySearchResponse<T> = {
   items: T[];
 };
 
+type ArtistsObject = {
+  external_urls: {
+    spotify: string;
+  };
+  followers: {
+    href: string;
+    total: number;
+  };
+  images: ImageObject[];
+  genres: string[];
+  href: string;
+  id: string;
+  name: string;
+  popularity: number;
+  type: "artist";
+  uri: string;
+};
+
+type AlbumObject = {
+  album_type: string;
+  total_tracks: number;
+  available_markets: string[];
+  external_urls: string[];
+  href: string;
+  id: string;
+  images: ImageObject[];
+  name: string;
+  release_date: string;
+  type: "album";
+  genres: string[];
+  label: string;
+  popularity: number;
+  album_group: string;
+  artists: Array<
+    Omit<ArtistsObject, "followers" | "images" | "genres" | "popularity">
+  >;
+};
+
+type ImageObject = {
+  url: string;
+  height: number;
+  width: number;
+};
+
 type SpotifyTrackItemsResponse = {
-  artists: {
-    images: {
-      url: string;
-      height: number;
-      width: number;
-    }[];
-    name: string;
-    uri: string;
-  }[];
+  album: AlbumObject;
+  artists: ArtistsObject[];
   duration_ms: number;
   explicit: boolean;
   href: string;
@@ -58,11 +95,7 @@ type SpotifyPlaylistsResponse = {
   description: string;
   href: string;
   id: string;
-  images: {
-    url: string;
-    width: number;
-    height: number;
-  }[];
+  images: ImageObject[];
   name: string;
   public: boolean;
   tracks: {
@@ -75,3 +108,8 @@ type SpotifyPlaylistsResponse = {
 
 export type PlaylistResponse =
   InternalSpotifySearchResponse<SpotifyPlaylistsResponse>;
+
+export type SpotifyRecentlyPlayedResponse = Omit<
+  InternalSpotifySearchResponse<SpotifyTrackItemsResponse>,
+  "previous"
+>;

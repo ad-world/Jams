@@ -5,6 +5,8 @@ import { NextAuthOptions } from "next-auth";
 import NextAuth from "next-auth/next";
 import SpotifyProvider from "next-auth/providers/spotify";
 import { connect, db } from "../../../lib/db";
+import { createQueue, getQueueByHostId } from "@/lib/queue";
+import { Status } from "@/types/generic";
 
 const scope =
   "user-read-recently-played user-read-playback-state user-top-read user-modify-playback-state user-read-currently-playing user-follow-read playlist-read-private user-read-email user-read-private user-library-read playlist-read-collaborative";
@@ -32,6 +34,11 @@ export const authOptions: NextAuthOptions = {
       session.user.id = user.id;
 
       const account = await getAccount(user.id);
+
+      const currentQueue = await getQueueByHostId(user.id);
+      if (currentQueue.status === Status.FAIL) {
+        await createQueue(user.id);
+      }
 
       if (account && Number(account?.expires_at) * 1000 < Date.now()) {
         try {
