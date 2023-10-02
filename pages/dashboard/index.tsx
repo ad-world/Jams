@@ -1,9 +1,6 @@
 /** @jsxImportSource theme-ui */
-import { DashboardLayout } from "@/components/layouts/Dashboard";
-import { Button } from "theme-ui";
 import { signOut } from "next-auth/react";
 import { useSerialize } from "@/utils/hooks";
-import { consumeGenericResponse } from "@/utils/response";
 import Queue from "@/lib/models/queue.model";
 import { Status } from "@/types/generic";
 import { getServerSession } from "next-auth";
@@ -20,15 +17,7 @@ interface DashboardProps {
 
 export default function Dashboard({ queue }: DashboardProps) {
   return (
-    <DashboardLayout>
-      Hello world!
-      <Button
-        variant="buttons.primary"
-        onClick={() => signOut({ callbackUrl: "/" })}
-      >
-        Log Out
-      </Button>
-    </DashboardLayout>
+      <p>Hello world!</p>
   );
 }
 

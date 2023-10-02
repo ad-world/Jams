@@ -19,8 +19,3 @@ export function buildGenericResponse<T>({
         message: message ?? "Undefined error",
       };
 }
-
-export function consumeGenericResponse<T>(response: GenericResponse<T>) {
-  return response;
-}
-

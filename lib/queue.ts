@@ -23,6 +23,7 @@ export const getQueueByHostId = async (hostId?: string): Promise<GenericResponse
   if (!queue) {
     return {
       status: Status.FAIL,
+      data: null,
       message: `Could not find queue for host ${hostId}`,
     };
   }
@@ -38,7 +39,7 @@ export const getQueueByHostId = async (hostId?: string): Promise<GenericResponse
   };
 };
 
-export const joinSession = async (queueId: string | ObjectId, name: string) => {
+export const joinSession = async (queueId: string | ObjectId, name: string): Promise<GenericResponse<{id: ObjectId}>> => {
   const queue = await db()
     .collection<Queue>("queues")
     .findOne({ queueId: new ObjectId(queueId) });
@@ -76,7 +77,9 @@ export const joinSession = async (queueId: string | ObjectId, name: string) => {
   return {
     status: Status.SUCCESS,
     message: `${name} succesfully added to the session.`,
-    id,
+    data: {
+      id
+    },
   };
 };
 
