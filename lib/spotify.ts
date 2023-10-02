@@ -1,6 +1,11 @@
-import { PlaylistResponse, SpotifySearchResponse } from "@/types/spotify";
+import {
+  PlaylistResponse,
+  QueueResponse,
+  SpotifySearchResponse,
+} from "@/types/spotify";
 import { trackSearchTransformer } from "@/utils/transformers";
 import { authFetch } from "@/utils/fetcher";
+import Queue from "./models/queue.model";
 
 export const search = async (
   keywords: string | string[] | undefined,
@@ -31,7 +36,7 @@ export const search = async (
 export const getPlaylists = async (
   id: string | undefined,
   userId: string | undefined
-): Promise<PlaylistResponse> => {
+): Promise<PlaylistResponse | undefined> => {
   try {
     const url = `${process.env.SPOTIFY_API}/users/${id}/playlists`;
     const response: PlaylistResponse = await authFetch(userId, url, "GET");
@@ -39,7 +44,6 @@ export const getPlaylists = async (
     return response;
   } catch (err) {
     console.error(err);
-    return {} as PlaylistResponse;
   }
 };
 
@@ -52,6 +56,19 @@ export const acceptSong = async (songUri: string, userId: string) => {
 
     return response;
   } catch (err) {
-    console.log(err);
+    console.error(err);
+  }
+};
+
+export const getQueue = async (
+  userId: string
+): Promise<QueueResponse | undefined> => {
+  try {
+    const url = `${process.env.SPOTIFY_API}/me/player/queue`;
+    const response: QueueResponse = await authFetch(userId, url, "GET");
+
+    return response;
+  } catch (err) {
+    console.error(err);
   }
 };

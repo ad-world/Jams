@@ -13,5 +13,6 @@ export const useRedirectSession = () => {
 };
 
 export function useSerialize<T>(data: T): T {
+  console.log(data);
   return JSON.parse(JSON.stringify(data));
 }

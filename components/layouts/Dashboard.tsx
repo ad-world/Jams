@@ -5,11 +5,8 @@ import Image from "next/image";
 import Icon from "../../public/Musically.svg";
 import { VStack, Grid, GridItem, Container, HStack } from "@chakra-ui/react";
 import { useSession } from "next-auth/react";
-import { Heading, Spinner } from "theme-ui";
+import { Spinner } from "theme-ui";
 import Head from "next/head";
-import { GetServerSidePropsContext } from "next";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/pages/api/auth/[...nextauth]";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -48,7 +45,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
                       height={100}
                       sx={{ borderRadius: "20px" }}
                     ></Image>
-                    <VStack alignItems="left">
+                    <VStack>
                       <h3 sx={{ variant: "text.subheading", color: "white" }}>
                         Host
                       </h3>
@@ -58,6 +55,14 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
                     </VStack>
                   </HStack>
                 )}
+              </VStack>
+              <VStack
+                paddingX={40}
+                alignItems="left"
+                justifyContent="left"
+                alignContent="left"
+              >
+                <b>Library</b>
               </VStack>
             </GridItem>
             <GridItem colSpan={4} p={40}>

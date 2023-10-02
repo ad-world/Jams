@@ -1,7 +1,7 @@
 import Queue from "./models/queue.model";
 import { db } from "./db";
 import { ObjectId } from "mongodb";
-import { Status } from "@/types/generic";
+import { GenericResponse, Status } from "@/types/generic";
 import { AddSongRequest } from "@/types/requsts";
 
 export const createQueue = async (accountId?: string) => {
@@ -15,7 +15,7 @@ export const createQueue = async (accountId?: string) => {
   return result.insertedId;
 };
 
-export const getQueueByHostId = async (hostId?: string) => {
+export const getQueueByHostId = async (hostId?: string): Promise<GenericResponse<Queue>> => {
   const queue = await db()
     .collection<Queue>("queues")
     .findOne({ hostId: new ObjectId(hostId) });
@@ -29,7 +29,12 @@ export const getQueueByHostId = async (hostId?: string) => {
 
   return {
     status: Status.SUCCESS,
-    data: queue,
+    data: {
+      hostId: queue.hostId,
+      requests: queue.requests,
+      queueId: queue.queueId,
+      connectedUsers: queue.connectedUsers
+    },
   };
 };
 

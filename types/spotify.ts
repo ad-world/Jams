@@ -113,3 +113,8 @@ export type SpotifyRecentlyPlayedResponse = Omit<
   InternalSpotifySearchResponse<SpotifyTrackItemsResponse>,
   "previous"
 >;
+
+export type QueueResponse = {
+  currently_playing: SpotifyTrackItemsResponse;
+  queue: Array<SpotifyTrackItemsResponse>;
+};

@@ -40,7 +40,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const playlists = await getPlaylists(account?.providerAccountId, sub);
   const queue = await getQueueByHostId(sub);
   const serializedQueue = useSerialize(queue);
-  const serializedPlaylist = useSerialize(playlists);
+  // const serializedPlaylist = useSerialize(playlists);
 
   return {
     props: {
