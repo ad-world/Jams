@@ -8,3 +8,8 @@ export type GenericResponse<T> = {
   data?: T | null;
   message?: string;
 };
+
+export type NavConfig = {
+  title: string;
+  href: string;
+}
