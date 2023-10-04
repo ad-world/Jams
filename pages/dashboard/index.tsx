@@ -13,10 +13,11 @@ import {
 	Button,
 	Flex,
 	Heading,
+	Highlight,
 	VStack,
 } from "@chakra-ui/react";
 import Sidebar from "@/components/sidebar/Sidebar";
-import { BG_PURPLE, MAIN_PURPLE } from "@/utils/colors";
+import { BG_PURPLE, LIGHT_BLUE, LIGHT_PURPLE, MAIN_PURPLE, MEDIUM_BLUE } from "@/utils/colors";
 import { requireAuth } from "@/utils/auth";
 
 interface DashboardProps {
@@ -38,17 +39,17 @@ export default function Dashboard({ queue, user }: DashboardProps) {
               </Heading>
               <Sidebar/> 
             </div>
-            <Button bgColor={BG_PURPLE} color={'white'} _hover={{bgColor: MAIN_PURPLE}} onClick={() => signOut().then(() => location.href = "/")}>
+            <Button bgColor={MEDIUM_BLUE} color={'white'} _hover={{bgColor: LIGHT_BLUE}} onClick={() => signOut().then(() => location.href = "/")}>
               Logout
             </Button>
           </VStack>
-				
 				</Box>
-
 				{/* Main content */}
-				<Box flex="1" p={8} bgColor="purple.400">
+				<Box flex="1" p={8} bgColor={LIGHT_BLUE}>
 					<Heading size="2xl">
-						Hi {user?.name}, welcome to your jam!
+						<Highlight query={[user?.name as string]} styles={{px: 3, py: 2, rounded: 'full', bg: LIGHT_PURPLE}}>
+							{`${user?.name}'s Session`}
+						</Highlight>
 					</Heading>
 					{/* Main content goes here */}
 				</Box>

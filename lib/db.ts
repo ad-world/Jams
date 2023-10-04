@@ -1,4 +1,4 @@
-import { Db, MongoClient } from "mongodb";
+import { Db, MongoClient, ServerApiVersion } from "mongodb";
 
 let cachedClient: Promise<MongoClient>;
 let cachedDb: Db;
@@ -19,7 +19,13 @@ export function connect() {
     throw new Error("No DB NAME found.");
   }
 
-  const client = new MongoClient(URL);
+  const client = new MongoClient(URL, {
+    serverApi: {
+      version: ServerApiVersion.v1,
+      strict: true,
+      deprecationErrors: true,
+    }
+  });
   const db = client.db(DB_NAME);
 
   cachedClient = client.connect();

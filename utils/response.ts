@@ -6,7 +6,7 @@ export function buildGenericResponse<T>({
   message,
 }: {
   status: Status;
-  data?: T;
+  data?: T | null;
   message?: string;
 }): GenericResponse<T> {
   return status === Status.SUCCESS
