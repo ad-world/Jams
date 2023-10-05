@@ -91,7 +91,7 @@ export type TransformedSearchResponse = {
   }[];
 }[];
 
-type SpotifyPlaylistsResponse = {
+export type SpotifyPlaylistsResponse = {
   description: string;
   href: string;
   id: string;
@@ -115,6 +115,6 @@ export type SpotifyRecentlyPlayedResponse = Omit<
 >;
 
 export type QueueResponse = {
-  currently_playing: SpotifyTrackItemsResponse;
+  currently_playing: SpotifyTrackItemsResponse | null;
   queue: Array<SpotifyTrackItemsResponse>;
 };

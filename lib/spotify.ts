@@ -6,7 +6,6 @@ import {
 } from "@/types/spotify";
 import { trackSearchTransformer } from "@/utils/transformers";
 import { authFetch } from "@/utils/fetcher";
-import Queue from "./models/queue.model";
 
 export const search = async (
   keywords: string | string[] | undefined,
@@ -69,7 +68,7 @@ export const acceptSong = async (songUri: string, userId: string) => {
 };
 
 export const getQueue = async (
-  userId: string
+  userId?: string
 ): Promise<QueueResponse | null> => {
   try {
     const url = `${process.env.SPOTIFY_API}/me/player/queue`;
