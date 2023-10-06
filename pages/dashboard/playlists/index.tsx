@@ -1,5 +1,5 @@
 import { signOut } from "next-auth/react";
-import { useSerialize } from "@/utils/hooks";
+import { serialize } from "@/utils/util";
 import { getServerSession, User } from "next-auth";
 import { authOptions } from "../../api/auth/[...nextauth]";
 import { getPlaylists } from "@/lib/spotify";
@@ -167,7 +167,7 @@ export const getServerSideProps = requireAuth(async (context) => {
     const sub = session?.user.id;
     const account = await getAccount(sub);
     const playlists = await getPlaylists(account?.providerAccountId, sub);
-    const serializedPlaylist = playlists ? useSerialize(playlists) : null;
+    const serializedPlaylist = playlists ? serialize(playlists) : null;
 
     return {
         props: {

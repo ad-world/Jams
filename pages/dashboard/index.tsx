@@ -1,5 +1,5 @@
 import { signOut, useSession } from "next-auth/react";
-import { useSerialize } from "@/utils/hooks";
+import { serialize } from "@/utils/util";
 import Queue from "@/lib/models/queue.model";
 import { Status } from "@/types/generic";
 import { getServerSession, User } from "next-auth";
@@ -17,7 +17,13 @@ import {
 	GridItem,
 	Heading,
 	Highlight,
+	HStack,
 	Input,
+	Menu,
+	MenuButton,
+	MenuDivider,
+	MenuItem,
+	MenuList,
 	Text,
 	VStack,
 } from "@chakra-ui/react";
@@ -25,7 +31,7 @@ import Sidebar from "@/components/sidebar/Sidebar";
 import { HONEY_DEW, LIGHT_BLUE, LIGHT_PURPLE } from "@/utils/colors";
 import { requireAuth } from "@/utils/auth";
 import PrimaryButton from "@/components/buttons/PrimaryButton";
-import { ArrowUpIcon } from "@chakra-ui/icons";
+import { ArrowUpIcon, ChevronDownIcon } from "@chakra-ui/icons";
 import { QueueResponse } from "@/types/spotify"
 import SecondaryButton from "@/components/buttons/SecondaryButton";
 
@@ -57,10 +63,23 @@ export default function Dashboard({ queue, user, spotifyQueue }: DashboardProps)
 					</VStack>
 				</Box>
 				{/* Main content */}
-				<Box flex="1" bgColor={LIGHT_BLUE}>
-					<Center minW='100%' bgColor="whiteAlpha.400" p={4}>
+				<Box flex="1" bgColor={LIGHT_BLUE} >
+					<HStack minW='100%' bgColor="whiteAlpha.400" p={4}>
 						<Input maxW='40%' mx='auto' placeholder="Search for songs..." />
-					</Center>
+						<Menu>
+							<MenuButton as={Button} rightIcon={<ChevronDownIcon/>}>
+								Invite
+							</MenuButton>
+							<MenuList>
+								<Heading m={3} size='sm'>Session Code: {queue?.sessionCode}</Heading>
+								<MenuDivider></MenuDivider>
+								<MenuItem>Copy session code to clipboard</MenuItem>
+								<MenuItem>Copy session link to clipboard</MenuItem>
+								<MenuDivider></MenuDivider>
+								<MenuItem>Logout</MenuItem>
+							</MenuList>
+						</Menu>
+					</HStack>
 					<Grid templateColumns='repeat(4, 1fr)' height={'80%'} mt={16} gap={12} templateRows='repeat(2, 1fr)' width={'80%'} mx='auto'>
 						<GridItem rowSpan={2}>
 							<Box bgColor={HONEY_DEW} rounded="2xl" p={12} minW="250px" height="100%">
@@ -81,7 +100,7 @@ export default function Dashboard({ queue, user, spotifyQueue }: DashboardProps)
 								
 							</Box>
 						</GridItem>
-						<GridItem colSpan={2} rowSpan={2}>
+						<GridItem colSpan={2} rowSpan={2} minW="250px">
 							<Box bgColor={HONEY_DEW} rounded="2xl" p={12} minW="250px" height="100%">
 								<Heading size="md">Song Requests</Heading>
 							</Box>
@@ -121,7 +140,7 @@ export const getServerSideProps = requireAuth(async (context) => {
 	console.log(spotifyQueue);
 	// const playlists = await getPlaylists(account?.providerAccountId, sub);
 	const queue = await getQueueByHostId(sub);
-	const serializedQueue = useSerialize(queue);
+	const serializedQueue = serialize(queue);
 	// const serializedPlaylist = useSerialize(playlists);
 
 	return {

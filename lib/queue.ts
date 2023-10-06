@@ -3,9 +3,11 @@ import { db } from "./db";
 import { ObjectId } from "mongodb";
 import { GenericResponse, Status } from "@/types/generic";
 import { AddSongRequest } from "@/types/requsts";
+import { sessionCode } from "@/utils/util";
 
 export const createQueue = async (accountId?: string) => {
   const queue: Queue = {
+    sessionCode: sessionCode(),
     hostId: new ObjectId(accountId),
     requests: [],
     queueId: new ObjectId(),
@@ -31,6 +33,7 @@ export const getQueueByHostId = async (hostId?: string): Promise<GenericResponse
   return {
     status: Status.SUCCESS,
     data: {
+      sessionCode: queue.sessionCode,
       hostId: queue.hostId,
       requests: queue.requests,
       queueId: queue.queueId,
@@ -136,3 +139,30 @@ export const addSongToQueue = async (request: AddSongRequest) => {
     message: "Song added to queue.",
   };
 };
+
+export const getQueueFromCode = async (sessionCode: number): Promise<GenericResponse<Queue>> => {
+  try {
+    const queue = await db()
+      .collection<Queue>("queues")
+      .findOne({ sessionCode });
+
+    if(queue == null) {
+      return {
+        status: Status.FAIL,
+        data: null,
+        message: "Could not find session with session code " + sessionCode
+      }
+    }
+
+    return {
+      status: Status.SUCCESS,
+      data: queue,
+      message: "Session found successfully."
+    }
+  } catch (err) {
+    return {
+      status: Status.FAIL,
+      message: err as string
+    }
+  }
+}
