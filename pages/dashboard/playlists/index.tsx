@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unescaped-entities */
 import { signOut } from "next-auth/react";
 import { serialize } from "@/utils/util";
 import { getServerSession, User } from "next-auth";
@@ -127,7 +128,7 @@ export default function Dashboard({ playlist, user }: PlaylistProps) {
                     {hasNoSongs ? (
                         <Center minH="80%">
                             <Heading size="lg">
-                                You don't have any songs.
+                                <Text>You don't have any songs.</Text>
                                 <Link
                                     href={"https://dubstepai.world"}
                                     _hover={{ bgColor: HONEY_DEW }}
@@ -147,7 +148,7 @@ export default function Dashboard({ playlist, user }: PlaylistProps) {
                             spacingX="20px"
                         >
                             {playlist?.items.map((el) => (
-                                <PlaylistItem playlist={el} />
+                                <PlaylistItem playlist={el} key={el.uri}/>
                             ))}
                         </SimpleGrid>
                     )}

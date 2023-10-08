@@ -109,9 +109,9 @@ export default function Dashboard({ queue, user, spotifyQueue }: DashboardProps)
 										) : (
 											<VStack maxHeight={'100%'} scrollBehavior='auto'>
 												{spotifyQueue?.queue.map(item => (
-													<Box w='100%'>
+													<Box w='100%' key={item.uri}>
 														<HStack>
-															<Image src={item.album.images[0].url} w={50}></Image>
+															<Image src={item.album.images[0].url} w={50} alt={`${item.name} Image`}></Image>
 															<VStack alignItems="flex-start">
 																<Text textAlign={'left'} fontWeight={700}>{item.name}</Text>
 																<Text>{reduceArtists(item.artists)}</Text>
@@ -150,7 +150,7 @@ export default function Dashboard({ queue, user, spotifyQueue }: DashboardProps)
 										<Text>Nothing is playing at the moment.</Text>
 									) : (
 										<VStack>
-											<Image src={spotifyQueue.currently_playing.album.images[0].url} h='200' rounded={'xl'} />
+											<Image src={spotifyQueue.currently_playing.album.images[0].url} h='200' rounded={'xl'} alt={`${spotifyQueue.currently_playing.name}-image`}/>
 											<Heading size='sm'>{spotifyQueue.currently_playing.name}</Heading>
 											<Text>{reduceArtists(spotifyQueue.currently_playing.artists)}</Text>
 										</VStack>

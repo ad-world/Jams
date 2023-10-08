@@ -43,7 +43,7 @@ const SongSearch: React.FC<SongSearchProps> = ({ userId, w = '40%', ...props }) 
                             >
                                 <HStack justifyContent={'space-between'} w='100%'>
                                     <HStack>
-                                        <Image src={item.album.images[0].url} height={30}/>
+                                        <Image src={item.album.images[0].url} height={30} alt={`${item.name}-image`}/>
                                         <Text as='span' fontWeight={'bold'}>{item.name}</Text>
                                         <Text>- {reduceArtists(item.artists)}</Text>
                                     </HStack>
