@@ -2,11 +2,12 @@ import "@/styles/globals.scss";
 import type { AppProps } from "next/app";
 import { ChakraProvider } from "@chakra-ui/react";
 import { SessionProvider } from "next-auth/react";
+import { trpc } from "@/utils/trpc"
 
-export default function App({
+const App = ({
   Component,
   pageProps: { session, ...pageProps },
-}: AppProps) {
+}: AppProps) => {
   return (
     <SessionProvider session={session}>
       <ChakraProvider>
@@ -15,3 +16,5 @@ export default function App({
     </SessionProvider>
   );
 }
+
+export default trpc.withTRPC(App);
