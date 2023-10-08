@@ -10,6 +10,7 @@ export const trackSearchTransformer = (
     data.tracks?.items.map((item) => {
       return {
         artists: item.artists,
+        album: item.album,
         duration_ms: item.duration_ms,
         explicit: item.explicit,
         href: item.href,

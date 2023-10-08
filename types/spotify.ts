@@ -8,7 +8,7 @@ type InternalSpotifySearchResponse<T> = {
   items: T[];
 };
 
-type ArtistsObject = {
+export type ArtistsObject = {
   external_urls: {
     spotify: string;
   };
@@ -79,16 +79,9 @@ export type TransformedSearchResponse = {
   uri: string;
   href: string;
   explicit: boolean;
+  album: AlbumObject;
   duration_ms: number;
-  artists: {
-    name: string;
-    uri: string;
-    images: {
-      url: string | null;
-      height: number;
-      width: number;
-    }[];
-  }[];
+  artists: ArtistsObject[]
 }[];
 
 export type SpotifyPlaylistsResponse = {

@@ -42,7 +42,7 @@ export const getQueueByHostId = async (hostId?: string): Promise<GenericResponse
   };
 };
 
-export const joinSession = async (queueId: string | ObjectId, name: string): Promise<GenericResponse<{id: ObjectId}>> => {
+export const joinSession = async (queueId: string | ObjectId, name: string): Promise<GenericResponse<{ id: ObjectId }>> => {
   const queue = await db()
     .collection<Queue>("queues")
     .findOne({ queueId: new ObjectId(queueId) });
@@ -146,7 +146,7 @@ export const getQueueFromCode = async (sessionCode: number): Promise<GenericResp
       .collection<Queue>("queues")
       .findOne({ sessionCode });
 
-    if(queue == null) {
+    if (queue == null) {
       return {
         status: Status.FAIL,
         data: null,
@@ -160,6 +160,26 @@ export const getQueueFromCode = async (sessionCode: number): Promise<GenericResp
       message: "Session found successfully."
     }
   } catch (err) {
+    return {
+      status: Status.FAIL,
+      message: err as string
+    }
+  }
+}
+
+export const deleteHostQueue = async (hostId: string): Promise<GenericResponse<boolean>> => {
+  try {
+    const deleted = await db().collection<Queue>("queues").deleteMany({
+      hostId: new ObjectId(hostId)
+    })
+
+    return {
+      status: Status.SUCCESS,
+      data: deleted.acknowledged,
+      message: "Queue destroyed."
+    }
+    
+  } catch(err) {
     return {
       status: Status.FAIL,
       message: err as string
