@@ -1,11 +1,59 @@
-## Music Sessions Reimagined (Jams)
 
-I didn't like how I built the first iteration of this application (similar stack, but uses server side templating instead of React), and I also didn't like how it was written in JavaScript instead of TypeScript, so this application addresses those concerns.
+# Jams
+Jams is a web application that allows users to create collaborative queues where their friends can join and request songs to play. It is similar to Spotify Jam, but only one person needs a Spotify account (the session host). It is a rebuild of my previous project called Music Sessions, but while that was built with Handlebars (templating) and JavaScript, this is built in React and TS. 
 
-It is built fully in TypeScript and Next.js
 
-This application is basically Spotify Sessions (was originally created before Sessions was a thing) but only one person needs spotify access. The rest of the users join the session and request songs, that the host (the spotify user) must accept before they are put into the playback queue.
 
-This is a very bare-bones README that I will update as I continue to work on this application. I'm trying to make it as enterprise-grade and robust as possible, so while the first iteration took me about a month, I expect this one to take a little longer as I'm thinking about a lot more things while building.
 
-Feel free to reach out if you have any questions.
+## Deployment
+
+This project is not currently deployed. I will update this section once that changes. 
+## Usage
+
+For local development, you will need the following things
+- a MongoDB database, local or in the cloud (Atlas)
+- a spotify developer account (and a spotify application)
+
+Fill out your environment variables, run `npm install` and `npm run dev` and you should be good to go!
+
+
+
+## Environment Variables
+
+After cloning the repository, add these fields to your .env.local
+```
+CLIENT_ID="client ID from spotify"
+CLIENT_SECRET="client secret from spotify"
+SPOTIFY_API=https://api.spotify.com/v1
+NEXTAUTH_SECRET="generate a secret for this"
+MONGO_DB="mongo url"
+DB_NAME="mongo collection"
+NEXTAUTH_URL="http://localhost:3000"
+```
+
+
+## Features
+
+- Creating a session 
+- Joining a session
+- Requesting songs as a listener
+- Accepting / rejecting requests as a host
+- Searching through Spotify's catalog
+- Viewing your playlists (and adding songs to queue from there)
+- Song playback control
+
+## Tech Stack
+
+- React
+- Typescript
+- Next.js
+- MongoDB
+- ChakraUI
+- tRPC
+- Spotify Web API
+
+
+## Authors
+
+- [@ad-world](https://www.github.com/ad-world)
+
