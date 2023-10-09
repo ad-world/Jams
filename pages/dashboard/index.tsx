@@ -77,7 +77,7 @@ export default function Dashboard({ queue, user, spotifyQueue }: DashboardProps)
 				{/* Main content */}
 				<Box flex="1" bgColor={LIGHT_BLUE} >
 					<HStack minW='100%' bgColor="whiteAlpha.400" p={4} >
-							<SongSearch userId={user?.id ?? ''} mx='auto'/>
+							<SongSearch userId={user?.id ?? ''} mx='auto' onChoose={(uri) => console.log(uri)}/>
 							<Menu >
 								<MenuButton as={Button} rightIcon={<ChevronDownIcon />}>
 									Invite
