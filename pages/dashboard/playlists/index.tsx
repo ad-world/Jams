@@ -79,7 +79,7 @@ interface PlaylistProps {
     user: User | null;
 }
 
-export default function Dashboard({ playlist, user }: PlaylistProps) {
+export default function Playlist({ playlist, user }: PlaylistProps) {
     const hasNoSongs = playlist && playlist.total == 0;
 
     return (

@@ -9,6 +9,9 @@ import { useState } from "react";
 export default function Home() {
   const [isJoiningSession, setIsJoiningSession] = useState<boolean>(false);
   const [sessionCode, setSessionCode] = useState<string>('');
+
+  const joinSession = (sessionCode: string) => location.href = `/jams/${sessionCode}`;
+
   return (
     <Center minH='100vh' minW='100vw' bgColor={LIGHT_BLUE}>
       <Box bgColor={"white"} borderRadius="2xl" p={20}>
@@ -25,7 +28,7 @@ export default function Home() {
             <FormControl>
               <FormLabel>Session Code</FormLabel>
               <Input value={sessionCode} onChange={(e) => setSessionCode(e.target.value)}></Input>
-              <PrimaryButton text="Join Session" mt={4}></PrimaryButton>
+              <PrimaryButton text="Join Session" mt={4} onClick={() => joinSession(sessionCode)}></PrimaryButton>
             </FormControl>
             <HStack>
               <ArrowBackIcon></ArrowBackIcon> 
