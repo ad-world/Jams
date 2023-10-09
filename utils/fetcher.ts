@@ -34,10 +34,11 @@ export const authFetch = async<T> (
         };
       }
 
+
       const response = await fetch(url, options);
       const data = await response.json();
 
-      if (data.status === 401 || data.status == 403) {
+      if (data.status == 400 || data.status === 401 || data.status == 403) {
         throw new Error(data);
       }
 

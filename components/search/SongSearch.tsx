@@ -1,4 +1,4 @@
-import { TransformedSearchResponse } from "@/types/spotify";
+import { SingleTransformedSearchResponse, TransformedSearchResponse } from "@/types/spotify";
 import { Box, FlexProps, HStack, Image } from "@chakra-ui/react";
 import { Flex, FormControl, FormHelperText, FormLabel, Text } from "@chakra-ui/react";
 import {
@@ -16,7 +16,7 @@ import { formatMs, reduceArtists } from "@/utils/util";
 
 interface SongSearchProps extends FlexProps {
     userId: string;
-    onChoose: (uri: string) => void;
+    onChoose: (track: SingleTransformedSearchResponse) => void;
 }
 
 const SongSearch: React.FC<SongSearchProps> = ({ userId, w = '40%', onChoose, ...props }) => {
@@ -37,8 +37,8 @@ const SongSearch: React.FC<SongSearchProps> = ({ userId, w = '40%', onChoose, ..
         selectMethod: "mouse" | "keyboard" | null;
         isNewInput?: boolean | undefined;
     }) => {
-        const id = params.item.value;
-        onChoose(id)
+        const track = JSON.parse(params.item.value) as SingleTransformedSearchResponse;
+        onChoose(track)
     }
 
     return (
@@ -50,7 +50,7 @@ const SongSearch: React.FC<SongSearchProps> = ({ userId, w = '40%', onChoose, ..
                         {(isFetched || !isRefetching) && data?.map((item) => (
                             <AutoCompleteItem
                                 key={`option-${item.uri}}`}
-                                value={`${item.uri}`}
+                                value={JSON.stringify(item)}
                                 label={`${item.name} - ${reduceArtists(item.artists)}`}
                             >
                                 <HStack justifyContent={'space-between'} w='100%'>

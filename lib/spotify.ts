@@ -56,10 +56,8 @@ export const getPlaylists = async (
 
 export const acceptSong = async (songUri: string, userId: string) => {
   try {
-    const url = `${process.env.SPOTIFY_API}/me/player/queue`;
-    const response = await authFetch(userId, url, "POST", {
-      uri: songUri,
-    });
+    const url = `${process.env.SPOTIFY_API}/me/player/queue?uri=${songUri}`;
+    const response = await authFetch(userId, url, "POST");
 
     return response;
   } catch (err) {

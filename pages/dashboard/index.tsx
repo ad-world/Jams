@@ -31,12 +31,13 @@ import { HONEY_DEW, LIGHT_BLUE, LIGHT_PURPLE } from "@/utils/colors";
 import { requireAuth } from "@/utils/auth";
 import PrimaryButton from "@/components/buttons/PrimaryButton";
 import { ArrowUpIcon, ChevronDownIcon } from "@chakra-ui/icons";
-import { ArtistsObject, QueueResponse } from "@/types/spotify"
+import { ArtistsObject, QueueResponse, SingleTransformedSearchResponse, TransformedSearchResponse } from "@/types/spotify"
 import SecondaryButton from "@/components/buttons/SecondaryButton";
 import { trpc } from "@/utils/trpc";
 import { authOptions } from "../api/auth/[...nextauth]";
 import SongSearch from "@/components/search/SongSearch";
 import { reduceArtists } from "@/utils/util";
+import { useEffect, useState } from "react";
 
 interface DashboardProps {
 	spotifyQueue: QueueResponse | null;
@@ -47,14 +48,26 @@ interface DashboardProps {
 }
 
 export default function Dashboard({ queue, user, spotifyQueue }: DashboardProps) {
-	const emptyQueue = spotifyQueue?.queue.length === 0;
-
+	const [displayedQueue, setDisplayedQueue] = useState<QueueResponse | null>(spotifyQueue);
+	const emptyQueue = displayedQueue?.queue.length === 0;
 	const response = trpc.logout.useMutation()
+
+	const addSongToQueue = trpc.acceptSong.useMutation();
+	const { data: spotifyQueueData, refetch } = trpc.getQueue.useQuery({ userId: user?.id ?? '' });
 
 	const logout = (hostId: string) => {
 		response.mutate({ hostId });
 		signOut().then(() => location.href = "/");
 	}
+
+	const chooseSong = async (track: SingleTransformedSearchResponse) => {
+		await addSongToQueue.mutateAsync({ userId: user?.id ?? '', songUri: track.uri });
+		refetch();
+	}
+
+	useEffect(() => {
+		setDisplayedQueue(spotifyQueueData ?? null);
+	}, [spotifyQueueData])
 
 	return (
 		<Box minH={"100vh"} minW={"100vw"}>
@@ -70,27 +83,27 @@ export default function Dashboard({ queue, user, spotifyQueue }: DashboardProps)
 							</Text>
 							<Sidebar />
 						</div>
-						<PrimaryButton text="Logout" onClick={() => logout(user?.id ?? '')} 
+						<PrimaryButton text="Logout" onClick={() => logout(user?.id ?? '')}
 						/>
 					</VStack>
 				</Box>
 				{/* Main content */}
 				<Box flex="1" bgColor={LIGHT_BLUE} >
 					<HStack minW='100%' bgColor="whiteAlpha.400" p={4} >
-							<SongSearch userId={user?.id ?? ''} mx='auto' onChoose={(uri) => console.log(uri)}/>
-							<Menu >
-								<MenuButton as={Button} rightIcon={<ChevronDownIcon />}>
-									Invite
-								</MenuButton>
-								<MenuList>
-									<Heading m={3} size='sm'>Session Code: {queue?.sessionCode}</Heading>
-									<MenuDivider></MenuDivider>
-									<MenuItem>Copy session code to clipboard</MenuItem>
-									<MenuItem>Copy session link to clipboard</MenuItem>
-									<MenuDivider></MenuDivider>
-									<MenuItem onClick={() => logout(user?.id ?? '')}>Logout</MenuItem>
-								</MenuList>
-							</Menu>
+						<SongSearch userId={user?.id ?? ''} mx='auto' onChoose={chooseSong} />
+						<Menu >
+							<MenuButton as={Button} rightIcon={<ChevronDownIcon />}>
+								Invite
+							</MenuButton>
+							<MenuList>
+								<Heading m={3} size='sm'>Session Code: {queue?.sessionCode}</Heading>
+								<MenuDivider></MenuDivider>
+								<MenuItem>Copy session code to clipboard</MenuItem>
+								<MenuItem>Copy session link to clipboard</MenuItem>
+								<MenuDivider></MenuDivider>
+								<MenuItem onClick={() => logout(user?.id ?? '')}>Logout</MenuItem>
+							</MenuList>
+						</Menu>
 					</HStack>
 					<Grid templateColumns='repeat(4, 1fr)' height={'80%'} mt={16} gap={12} templateRows='repeat(2, 1fr)' width={'80%'} mx='auto'>
 						<GridItem rowSpan={2}>
@@ -108,7 +121,7 @@ export default function Dashboard({ queue, user, spotifyQueue }: DashboardProps)
 											</Center>
 										) : (
 											<VStack maxHeight={'100%'} scrollBehavior='auto'>
-												{spotifyQueue?.queue.map(item => (
+												{displayedQueue?.queue.map(item => (
 													<Box w='100%' key={item.uri}>
 														<HStack>
 															<Image src={item.album.images[0].url} w={50} alt={`${item.name} Image`}></Image>
@@ -129,30 +142,49 @@ export default function Dashboard({ queue, user, spotifyQueue }: DashboardProps)
 							<Box bgColor={HONEY_DEW} rounded="2xl" p={6} minW="250px" height="100%">
 								<Heading size="md">Song Requests</Heading>
 								<Divider />
-								{queue?.requests.length == 0 ? (
-									<Center h='100%'>
-										<VStack>
-											<Text color={'gray.600'} textAlign='center' width="200px" size='sm'>No song requests yet.</Text>
-											{
-												// todo: make this button do something
-											}
-											<SecondaryButton text="Invite friends"></SecondaryButton>
-										</VStack>
-									</Center>
-								) : null}
+								<Box py={4}>
+									{queue?.requests.length == 0 ? (
+										<Center h='100%'>
+											<VStack>
+												<Text color={'gray.600'} textAlign='center' width="200px" size='sm'>No song requests yet.</Text>
+												{
+													// todo: make this button do something
+												}
+												<SecondaryButton text="Invite friends"></SecondaryButton>
+											</VStack>
+										</Center>
+									) : (
+										<div style={{ height: '600px', maxHeight: '600px', overflowY: 'auto' }}>
+											<VStack maxHeight={'100%'} scrollBehavior='auto'>
+												{queue?.requests.map(item => (
+													<Box w='100%' key={item.uri}>
+														<HStack>
+															<Image src={item.image} w={50} alt={`${item.name} Image`}></Image>
+															<VStack alignItems="flex-start">
+																<Text textAlign={'left'} fontWeight={700}>{item.name}</Text>
+																<Text>{item.artists}</Text>
+															</VStack>
+														</HStack>
+													</Box>
+												))}
+											</VStack>
+
+										</div>
+									)}
+								</Box>
 							</Box>
 						</GridItem>
 						<GridItem>
 							<Box bgColor={HONEY_DEW} rounded="2xl" p={6} minW="250px" height="100%">
 								<Heading size="md" textAlign={'center'}>Currently Playing</Heading>
 								<Center w='full' h='full'>
-									{spotifyQueue?.currently_playing == null ? (
+									{displayedQueue?.currently_playing == null ? (
 										<Text>Nothing is playing at the moment.</Text>
 									) : (
 										<VStack>
-											<Image src={spotifyQueue.currently_playing.album.images[0].url} h='200' rounded={'xl'} alt={`${spotifyQueue.currently_playing.name}-image`}/>
-											<Heading size='sm'>{spotifyQueue.currently_playing.name}</Heading>
-											<Text>{reduceArtists(spotifyQueue.currently_playing.artists)}</Text>
+											<Image src={displayedQueue.currently_playing.album.images[0].url} h='200' rounded={'xl'} alt={`${displayedQueue.currently_playing.name}-image`} />
+											<Heading size='sm'>{displayedQueue.currently_playing.name}</Heading>
+											<Text>{reduceArtists(displayedQueue.currently_playing.artists)}</Text>
 										</VStack>
 									)}
 								</Center>
@@ -180,11 +212,11 @@ export const getServerSideProps = requireAuth(async (context) => {
 
 	const sub = session?.user.id;
 
-	console.log(sub);
+	// console.log(sub);
 	// const account = await getAccount(sub);
 	const spotifyQueue = await getQueue(sub);
 
-	console.log(spotifyQueue);
+	// console.log(spotifyQueue);
 	// const playlists = await getPlaylists(account?.providerAccountId, sub);
 	const queue = await getQueueByHostId(sub);
 	const serializedQueue = serialize(queue);

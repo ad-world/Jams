@@ -73,7 +73,7 @@ export type SpotifySearchResponse = {
   audiobooks?: InternalSpotifySearchResponse<unknown>; // not being used
 };
 
-export type TransformedSearchResponse = {
+export type SingleTransformedSearchResponse = {
   name: string;
   id: string;
   uri: string;
@@ -82,7 +82,9 @@ export type TransformedSearchResponse = {
   album: AlbumObject;
   duration_ms: number;
   artists: ArtistsObject[]
-}[];
+}
+
+export type TransformedSearchResponse = SingleTransformedSearchResponse[];
 
 export type SpotifyPlaylistsResponse = {
   description: string;
