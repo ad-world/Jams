@@ -1,9 +1,10 @@
-import { addSongToQueue, deleteHostQueue } from '@/lib/queue';
+import { addSongToQueue, deleteHostQueue, deleteRequestFromQueue, getRequestQueue } from '@/lib/queue';
 import { acceptSong, getQueue, search } from '@/lib/spotify';
 import { z } from 'zod';
 import { procedure, router } from '../trpc';
 import { AddSongRequest } from '@/types/requsts';
 import { reduceArtists } from '@/utils/util';
+
 export const appRouter = router({
     logout: procedure
         .input(
@@ -34,13 +35,12 @@ export const appRouter = router({
         input(
             z.object({
                 songUri: z.string(),
-                userId: z.string()
+                userId: z.string(),
             })
         )
         .mutation(async (opts) => {
-            const { songUri, userId} = opts.input;
-            const response = await acceptSong(songUri, userId);
-            console.log(response);
+            const { songUri, userId } = opts.input;
+            await acceptSong(songUri, userId );
         }),
     getQueue: procedure.
         input(
@@ -60,11 +60,11 @@ export const appRouter = router({
                 uri: z.string(),
                 image: z.string(),
                 artists: z.array(z.any()),
-                duration_ms: z.number()
+                duration_ms: z.number(),
             })
         ).mutation(async (opts) => {
             const { queueId, name, uri, image, artists, duration_ms } = opts.input;
-            const request: AddSongRequest = {
+            const request: Omit<AddSongRequest, 'requestId'> = {
                 queueId,
                 name, 
                 uri,
@@ -75,6 +75,28 @@ export const appRouter = router({
             }
 
             await addSongToQueue(request)
+        }),
+    getJamQueue: procedure
+        .input(
+            z.object({
+                queueId: z.string()
+            })
+        ).query(async (opts) => {
+            const { queueId } = opts.input;
+
+            const data = await getRequestQueue(queueId);
+            return data;
+        }),
+    deleteRequestFromQueue: procedure
+        .input(
+            z.object({
+                queueId: z.string(),
+                requestId: z.string()
+            })
+        ).mutation(async (opts) => {
+            const { queueId, requestId } = opts.input;
+
+            await deleteRequestFromQueue(queueId, requestId);
         })
 
 });

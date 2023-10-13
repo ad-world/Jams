@@ -8,4 +8,5 @@ export interface AddSongRequest {
   queueId: string | ObjectId;
   requestedBy: string;
   duration_ms: number;
+  requestId: ObjectId | string;
 }

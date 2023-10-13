@@ -13,8 +13,6 @@ import {
 	Grid,
 	GridItem,
 	Heading,
-	Highlight,
-	Input,
 	Menu,
 	Image,
 	MenuButton,
@@ -31,29 +29,60 @@ import { HONEY_DEW, LIGHT_BLUE, LIGHT_PURPLE } from "@/utils/colors";
 import { requireAuth } from "@/utils/auth";
 import PrimaryButton from "@/components/buttons/PrimaryButton";
 import { ArrowUpIcon, ChevronDownIcon } from "@chakra-ui/icons";
-import { ArtistsObject, QueueResponse, SingleTransformedSearchResponse, TransformedSearchResponse } from "@/types/spotify"
+import { QueueResponse, SingleTransformedSearchResponse } from "@/types/spotify"
 import SecondaryButton from "@/components/buttons/SecondaryButton";
 import { trpc } from "@/utils/trpc";
 import { authOptions } from "../api/auth/[...nextauth]";
 import SongSearch from "@/components/search/SongSearch";
 import { reduceArtists } from "@/utils/util";
 import { useEffect, useState } from "react";
+import io from 'socket.io-client'
+import type { Socket } from 'socket.io-client'
+import { UpdateQueueEvent } from "@/types/socket";
+import { AddSongRequest } from "@/types/requsts";
+
+
+let socket: Socket;
 
 interface DashboardProps {
 	spotifyQueue: QueueResponse | null;
-	queue?: Queue | null;
+	queue: Queue | null;
 	status: Status;
 	message?: string;
 	user: User | null
 }
 
 export default function Dashboard({ queue, user, spotifyQueue }: DashboardProps) {
-	const [displayedQueue, setDisplayedQueue] = useState<QueueResponse | null>(spotifyQueue);
-	const emptyQueue = displayedQueue?.queue.length === 0;
+	const { data: spotifyQueueData, refetch: refetchSpotifyQueue } = trpc.getQueue.useQuery({ userId: user?.id ?? '' });
+	const { data: requestQueueData, refetch: refetchQueueData } = trpc.getJamQueue.useQuery({ queueId: queue?.queueId.toString() ?? '' });
 	const response = trpc.logout.useMutation()
+	const deleteRequestFromQueue = trpc.deleteRequestFromQueue.useMutation();
+
+	useEffect(() => {
+		const socketInitializer = async (socket: Socket) => {
+			fetch('/api/socket').finally(() => {
+				socket = io()
+
+				socket.on('connect', () => {
+					console.log('connect')
+				})
+
+				socket.on('reload-queue', (data: UpdateQueueEvent) => {
+					if (data.queueId === queue?.queueId.toString()) {
+						refetchQueueData();
+					}
+				});
+			})
+		}
+
+		socketInitializer(socket);
+	}, [refetchQueueData, queue])
+
+	const [displayedQueue, setDisplayedQueue] = useState<QueueResponse | null>(spotifyQueue);
+	const [displayedRequestQueue, setDisplayedRequestQueue] = useState<Queue | null>(queue);
+	const emptyQueue = displayedQueue?.queue.length === 0;
 
 	const addSongToQueue = trpc.acceptSong.useMutation();
-	const { data: spotifyQueueData, refetch } = trpc.getQueue.useQuery({ userId: user?.id ?? '' });
 
 	const logout = (hostId: string) => {
 		response.mutate({ hostId });
@@ -62,12 +91,34 @@ export default function Dashboard({ queue, user, spotifyQueue }: DashboardProps)
 
 	const chooseSong = async (track: SingleTransformedSearchResponse) => {
 		await addSongToQueue.mutateAsync({ userId: user?.id ?? '', songUri: track.uri });
-		refetch();
+		refetchSpotifyQueue();
+	}
+
+	const acceptSongFromRequest = async (song: Omit<AddSongRequest, "queueId">) => {
+		await addSongToQueue.mutateAsync({ userId: user?.id ?? '', songUri: song.uri });
+		await deleteRequestFromQueue.mutateAsync({ queueId: queue?.queueId.toString() ?? '', requestId: song.requestId.toString() })
+		refetchQueueData();
+		refetchSpotifyQueue();
 	}
 
 	useEffect(() => {
 		setDisplayedQueue(spotifyQueueData ?? null);
 	}, [spotifyQueueData])
+
+	useEffect(() => {
+		if (requestQueueData != undefined && queue != null) {
+			const newQueueData: Queue = {
+				...queue,
+				requests: requestQueueData.data?.requests ?? [],
+				hostId: queue.hostId,
+				queueId: queue.queueId,
+				connectedUsers: [], // todo: change this?
+				sessionCode: queue.sessionCode ?? 0
+			}
+
+			setDisplayedRequestQueue(newQueueData);
+		}
+	}, [requestQueueData, queue])
 
 	return (
 		<Box minH={"100vh"} minW={"100vw"}>
@@ -142,8 +193,8 @@ export default function Dashboard({ queue, user, spotifyQueue }: DashboardProps)
 							<Box bgColor={HONEY_DEW} rounded="2xl" p={6} minW="250px" height="100%">
 								<Heading size="md">Song Requests</Heading>
 								<Divider />
-								<Box py={4}>
-									{queue?.requests.length == 0 ? (
+								<Box py={4} h='100%'>
+									{displayedRequestQueue?.requests.length == 0 ? (
 										<Center h='100%'>
 											<VStack>
 												<Text color={'gray.600'} textAlign='center' width="200px" size='sm'>No song requests yet.</Text>
@@ -156,19 +207,33 @@ export default function Dashboard({ queue, user, spotifyQueue }: DashboardProps)
 									) : (
 										<div style={{ height: '600px', maxHeight: '600px', overflowY: 'auto' }}>
 											<VStack maxHeight={'100%'} scrollBehavior='auto'>
-												{queue?.requests.map(item => (
+												{displayedRequestQueue?.requests.map(item => (
 													<Box w='100%' key={item.uri}>
-														<HStack>
-															<Image src={item.image} w={50} alt={`${item.name} Image`}></Image>
-															<VStack alignItems="flex-start">
-																<Text textAlign={'left'} fontWeight={700}>{item.name}</Text>
-																<Text>{item.artists}</Text>
-															</VStack>
+														<HStack justifyContent='space-between'>
+															<HStack>
+																<Image src={item.image} w={50} alt={`${item.name} Image`}></Image>
+																<VStack alignItems="flex-start">
+																	<Text textAlign={'left'} fontWeight={700}>{item.name}</Text>
+																	<Text>{item.artists}</Text>
+																</VStack>
+															</HStack>
+															<HStack gap={4} mr={2}>
+																<Button variant={'outline'} colorScheme="green" onClick={() => acceptSongFromRequest(item)}>Accept</Button>
+																<Button 
+																	variant={'outline'} 
+																	colorScheme="red" 
+																	onClick={() => deleteRequestFromQueue.mutateAsync({ 
+																		queueId: queue?.queueId.toString() ?? '', 
+																		requestId: item.requestId.toString() 
+																		})}
+																	>
+																		Reject
+																	</Button>
+															</HStack>
 														</HStack>
 													</Box>
 												))}
 											</VStack>
-
 										</div>
 									)}
 								</Box>
@@ -212,11 +277,9 @@ export const getServerSideProps = requireAuth(async (context) => {
 
 	const sub = session?.user.id;
 
-	// console.log(sub);
 	// const account = await getAccount(sub);
 	const spotifyQueue = await getQueue(sub);
 
-	// console.log(spotifyQueue);
 	// const playlists = await getPlaylists(account?.providerAccountId, sub);
 	const queue = await getQueueByHostId(sub);
 	const serializedQueue = serialize(queue);

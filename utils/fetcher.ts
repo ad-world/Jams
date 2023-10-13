@@ -36,7 +36,16 @@ export const authFetch = async<T> (
 
 
       const response = await fetch(url, options);
+
+      if(response.status == 204) {
+        return {
+          status: Status.SUCCESS,
+          message: "Operation complete."
+        }
+      }
+
       const data = await response.json();
+
 
       if (data.status == 400 || data.status === 401 || data.status == 403) {
         throw new Error(data);

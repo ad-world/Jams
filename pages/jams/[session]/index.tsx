@@ -13,23 +13,59 @@ import { serialize } from "@/utils/util";
 import { ArrowUpIcon, ChevronDownIcon } from "@chakra-ui/icons";
 import { Box, Center, Flex, Heading, VStack, Text, HStack, Menu, MenuButton, Button, MenuList, MenuDivider, MenuItem } from "@chakra-ui/react";
 import { GetServerSidePropsContext } from "next";
+import { useEffect, useState } from "react";
+
+import { io, type Socket } from 'socket.io-client'
+
+let socket: Socket;
 
 interface SessionProps {
     code: number,
     queue: Queue | null
 }
 export default function Session({ code, queue }: SessionProps) {
+    useEffect(() => {
+        const socketInitializer = async () => {
+            try {
+                await fetch('/api/socket');
+
+                socket = io();
+
+                socket.on('connect', () => {
+                    console.log('Connected to websocket server');
+                });
+
+                socket.on('reload-queue', (data) => {
+                    console.log('reload-queue:', data);
+                    // Handle the 'reload-queue' event here
+                });
+
+            } catch (error) {
+                console.error('Error initializing socket:', error);
+            }
+        };
+
+        // Initialize the socket when the component mounts
+        socketInitializer();
+        // () => socket?.disconnect();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     const requestSong = trpc.addSongToQueue.useMutation();
 
     const chooseSong = async (track: SingleTransformedSearchResponse) => {
         await requestSong.mutateAsync({
             queueId: queue?.queueId.toString() ?? '',
             name: track.name,
-            uri: track.uri, 
+            uri: track.uri,
             image: track.album.images[0].url,
             artists: track.artists,
-            duration_ms: track.duration_ms
-        })
+            duration_ms: track.duration_ms,
+        });
+
+        if (socket) {
+            socket.emit("queue-updated", { queueId: queue?.queueId })
+        }
     }
 
     if (!queue) {
@@ -64,16 +100,16 @@ export default function Session({ code, queue }: SessionProps) {
                     <HStack minW='100%' bgColor="whiteAlpha.400" p={4} >
                         <SongSearch onChoose={chooseSong} mx='auto' userId={queue?.hostId.toString() ?? ''} />
                         <Menu >
-							<MenuButton as={Button} rightIcon={<ChevronDownIcon />}>
-								Invite
-							</MenuButton>
-							<MenuList>
-								<Heading m={3} size='sm'>Session Code: {queue?.sessionCode}</Heading>
-								<MenuDivider></MenuDivider>
-								<MenuItem>Copy session code to clipboard</MenuItem>
-								<MenuItem>Copy session link to clipboard</MenuItem>
-							</MenuList>
-						</Menu>
+                            <MenuButton as={Button} rightIcon={<ChevronDownIcon />}>
+                                Invite
+                            </MenuButton>
+                            <MenuList>
+                                <Heading m={3} size='sm'>Session Code: {queue?.sessionCode}</Heading>
+                                <MenuDivider></MenuDivider>
+                                <MenuItem>Copy session code to clipboard</MenuItem>
+                                <MenuItem>Copy session link to clipboard</MenuItem>
+                            </MenuList>
+                        </Menu>
                     </HStack>
                 </Box>
             </Flex>

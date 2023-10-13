@@ -42,6 +42,32 @@ export const getQueueByHostId = async (hostId?: string): Promise<GenericResponse
   };
 };
 
+export const getRequestQueue = async (queueId: string): Promise<GenericResponse<{ requests: Omit<AddSongRequest, "queueId">[] }>> => {
+  try {
+    const queue = await db().collection<Queue>("queues").findOne({ queueId: new ObjectId(queueId) });
+    
+    if(!queue) {
+      return {
+        status: Status.FAIL,
+        message: "Queue not found",
+      }
+    }
+
+    return {
+      status: Status.SUCCESS,
+      data: {
+        requests: queue.requests
+      }
+    }
+
+  } catch(err) {
+      return {
+        status: Status.FAIL,
+        message: err as string,
+      }
+  }
+}
+
 export const joinSession = async (queueId: string | ObjectId, name: string): Promise<GenericResponse<{ id: ObjectId }>> => {
   const queue = await db()
     .collection<Queue>("queues")
@@ -104,7 +130,7 @@ export const deleteQueue = async (queueId: string | ObjectId) => {
   };
 };
 
-export const addSongToQueue = async (request: AddSongRequest) => {
+export const addSongToQueue = async (request: Omit<AddSongRequest, 'requestId'>) => {
   const { queueId } = request;
 
   const updateResult = await db()
@@ -116,6 +142,7 @@ export const addSongToQueue = async (request: AddSongRequest) => {
       {
         $push: {
           requests: {
+            requestId: new ObjectId(),
             name: request.name,
             uri: request.uri,
             image: request.image,
@@ -180,6 +207,31 @@ export const deleteHostQueue = async (hostId: string): Promise<GenericResponse<b
     }
     
   } catch(err) {
+    return {
+      status: Status.FAIL,
+      message: err as string
+    }
+  }
+}
+
+export const deleteRequestFromQueue = async (queueId: string, requestId: string): Promise<GenericResponse<boolean>> => {
+  try {
+    const deleted = await db().collection<Queue>("queues").updateOne({
+      queueId: new ObjectId(queueId)
+    }, {
+      $pull: {
+        requests: {
+          requestId: new ObjectId(requestId)
+        }
+      }
+    })
+
+    return {
+      status: Status.SUCCESS,
+      data: deleted.acknowledged,
+      message: "Request removed"
+    }
+  } catch (err) {
     return {
       status: Status.FAIL,
       message: err as string
