@@ -36,7 +36,9 @@ import { requireAuth } from "@/utils/auth";
 import { PlaylistResponse, SpotifyPlaylistsResponse } from "@/types/spotify";
 import { Link } from "@chakra-ui/react";
 import { ArrowUpIcon } from "@chakra-ui/icons";
-import SessionLayout from "@/components/layouts/SessionLayout";
+import { getQueueFromCode } from "@/lib/queue";
+import PublicSidebar from "@/components/sidebar/PublicSidebar";
+import PublicLayout from "@/components/layouts/PublicLayout";
 
 interface PlaylistItemProps {
     playlist: SpotifyPlaylistsResponse;
@@ -76,18 +78,19 @@ const PlaylistItem: React.FC<PlaylistItemProps> = ({ playlist }) => {
 };
 
 interface PlaylistProps {
+    sessionCode: number;
     playlist: PlaylistResponse | null;
     user: User | null;
 }
 
-export default function Playlist({ playlist, user }: PlaylistProps) {
+export default function Playlist({ playlist, user, sessionCode }: PlaylistProps) {
     const hasNoSongs = playlist && playlist.total == 0;
 
     return (
-        <SessionLayout p={8} user={user}>
+        <PublicLayout sessionCode={sessionCode} p={8}>
             <Heading size="2xl">
                 <Highlight
-                    query={["Your Playlists"]}
+                    query={["Jam Playlists"]}
                     styles={{
                         px: 3,
                         py: 2,
@@ -95,7 +98,7 @@ export default function Playlist({ playlist, user }: PlaylistProps) {
                         bg: LIGHT_PURPLE,
                     }}
                 >
-                    Your Playlists
+                    Jam Playlists
                 </Highlight>
             </Heading>
             {hasNoSongs ? (
@@ -125,26 +128,30 @@ export default function Playlist({ playlist, user }: PlaylistProps) {
                     ))}
                 </SimpleGrid>
             )}
-        </SessionLayout>
+        </PublicLayout>
     );
 }
 
 export const getServerSideProps = requireAuth(async (context) => {
-    const session = await getServerSession(
-        context.req,
-        context.res,
-        authOptions
-    );
+    const session = Number(context.params?.session);
+    const queue = await getQueueFromCode(session);
 
-    const sub = session?.user.id;
-    const account = await getAccount(sub);
-    const playlists = await getPlaylists(account?.providerAccountId, sub);
+    // const session = await getServerSession(
+    //     context.req,
+    //     context.res,
+    //     authOptions
+    // );
+
+    const userId = queue?.data?.hostId.toString();
+    const account = await getAccount(userId);
+    // const sub = session?.user.id;
+    const playlists = await getPlaylists(account?.providerAccountId, userId);
     const serializedPlaylist = playlists ? serialize(playlists) : null;
 
     return {
         props: {
-            playlist: serializedPlaylist,
-            user: session?.user ?? null,
+            playlist: serializedPlaylist ?? null,
+            sessionCode: session
         },
     };
 });

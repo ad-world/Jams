@@ -19,6 +19,11 @@ const ioHandler = (_: NextApiRequest, res: NextApiResponseWithSocket) => {
         socket.on('queue-updated', (msg: UpdateQueueEvent) => {
             io.emit('reload-queue', msg);
         })
+
+        socket.on('refresh-jam', (msg: UpdateQueueEvent) => {
+            console.log(msg);
+            io.emit('refresh-jam', msg);
+        })
     })
 
     res.end()
