@@ -1,9 +1,6 @@
 import { getAccount } from "@/lib/account";
 import { GenericResponse, Status } from "@/types/generic";
 
-const isProd = process.env.NODE_ENV === "production";
-export const serverUrl = isProd ? "idk_yet" : "http://localhost:3000";
-
 // authFetch for GET and POST requests to the Spotify API
 export const authFetch = async<T> (
   userId: string | undefined,
