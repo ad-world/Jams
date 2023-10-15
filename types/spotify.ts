@@ -58,6 +58,9 @@ type SpotifyTrackItemsResponse = {
   duration_ms: number;
   explicit: boolean;
   href: string;
+  external_urls: {
+    spotify: string;
+  }
   id: string;
   name: string;
   uri: string;

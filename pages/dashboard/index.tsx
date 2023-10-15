@@ -187,7 +187,7 @@ export default function Dashboard({ queue, user, spotifyQueue }: DashboardProps)
 										{displayedQueue?.queue.map((item, index) => (
 											<Box w='100%' key={item.uri + '' + index}>
 												<HStack>
-													<Image src={item.album.images[0].url} w={50} alt={`${item.name} Image`}></Image>
+													<Image src={item.album.images[0].url} w={50} alt={`${item.name} Image`} onClick={() => window.open(item.external_urls.spotify)}></Image>
 													<VStack alignItems="flex-start">
 														<Text textAlign={'left'} fontWeight={700}>{item.name}</Text>
 														<Text>{reduceArtists(item.artists)}</Text>
@@ -220,7 +220,7 @@ export default function Dashboard({ queue, user, spotifyQueue }: DashboardProps)
 											<Box w='100%' key={item.requestId.toString()}>
 												<HStack justifyContent='space-between'>
 													<HStack>
-														<Image src={item.image} w={50} alt={`${item.name} Image`}></Image>
+														<Image src={item.image} w={50} alt={`${item.name} Image`} ></Image>
 														<VStack alignItems="flex-start">
 															<Text textAlign={'left'} fontWeight={700}>{item.name}</Text>
 															<Text>{item.artists}</Text>
@@ -261,7 +261,7 @@ export default function Dashboard({ queue, user, spotifyQueue }: DashboardProps)
 								<Text>Nothing is playing at the moment.</Text>
 							) : (
 								<VStack>
-									<Image src={displayedQueue.currently_playing.album.images[0].url} h='200' rounded={'xl'} alt={`${displayedQueue.currently_playing.name}-image`} />
+									<Image src={displayedQueue.currently_playing.album.images[0].url} h='200' rounded={'xl'} alt={`${displayedQueue.currently_playing.name}-image`} onClick={() => window.open(displayedQueue.currently_playing?.external_urls.spotify)} />
 									<Heading size='sm'>{displayedQueue.currently_playing.name}</Heading>
 									<Text>{reduceArtists(displayedQueue.currently_playing.artists)}</Text>
 								</VStack>

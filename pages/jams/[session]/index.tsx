@@ -171,7 +171,7 @@ export default function Session({ code, queue, spotifyQueue }: SessionProps) {
 										{displayedQueue?.queue.map((item, index) => (
 											<Box w='100%' key={item.uri + '' + index}>
 												<HStack>
-													<Image src={item.album.images[0].url} w={50} alt={`${item.name} Image`}></Image>
+													<Image src={item.album.images[0].url} w={50} alt={`${item.name} Image`} onClick={() => window.open(item.external_urls.spotify)}></Image>
 													<VStack alignItems="flex-start">
 														<Text textAlign={'left'} fontWeight={700}>{item.name}</Text>
 														<Text>{reduceArtists(item.artists)}</Text>
