@@ -1,6 +1,6 @@
 /* eslint-disable react/no-unescaped-entities */
 import { signOut } from "next-auth/react";
-import { serialize } from "@/utils/util";
+import { reduceArtists, serialize } from "@/utils/util";
 import { getServerSession, User } from "next-auth";
 import { authOptions } from "../../api/auth/[...nextauth]";
 import { getPlaylists } from "@/lib/spotify";
@@ -12,6 +12,7 @@ import {
     Flex,
     Heading,
     Highlight,
+    HStack,
     Image,
     Modal,
     ModalBody,
@@ -24,6 +25,8 @@ import {
     Text,
     useDisclosure,
     VStack,
+    Spinner,
+    useToast
 } from "@chakra-ui/react";
 import Sidebar from "@/components/sidebar/Sidebar";
 import {
@@ -37,29 +40,110 @@ import { PlaylistResponse, SpotifyPlaylistsResponse } from "@/types/spotify";
 import { Link } from "@chakra-ui/react";
 import { ArrowUpIcon } from "@chakra-ui/icons";
 import SessionLayout from "@/components/layouts/SessionLayout";
+import { useEffect } from "react";
+import { io, Socket } from "socket.io-client";
+import { trpc } from "@/utils/trpc";
+import PrimaryButton from "@/components/buttons/PrimaryButton";
+import { getQueueByHostId } from "@/lib/queue";
+import Queue from "@/lib/models/queue.model";
+import SecondaryButton from "@/components/buttons/SecondaryButton";
+
+let socket: Socket;
 
 interface PlaylistItemProps {
     playlist: SpotifyPlaylistsResponse;
+    userId: string;
+    queueId: string;
+
 }
 
-const PlaylistItem: React.FC<PlaylistItemProps> = ({ playlist }) => {
+const PlaylistItem: React.FC<PlaylistItemProps> = ({ playlist, userId, queueId }) => {
     const { isOpen, onOpen, onClose } = useDisclosure();
+    const { data, isLoading, refetch } = trpc.getPlaylist.useQuery({ playlist: playlist.id, userId }, { enabled: false });
+    const addSongToQueue = trpc.acceptSong.useMutation();
+    const toast = useToast();
+
+    useEffect(() => {
+        const socketInitializer = async () => {
+            try {
+                await fetch('/api/socket');
+
+                socket = io();
+
+                socket.on('connect', () => {
+                    console.log('Connected to websocket server');
+                });
+            } catch (error) {
+                console.error('Error initializing socket:', error);
+            }
+        };
+
+        // Initialize the socket when the component mounts
+        socketInitializer();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     return (
-        <Box bgColor={HONEY_DEW} maxW={"200px"} rounded="3xl" p={4}>
+        <Box bgColor={HONEY_DEW} maxW={"200px"} rounded="3xl" p={4} onClick={() => {
+            onOpen();
+            refetch();
+        }}>
             <Modal isOpen={isOpen} onClose={onClose}>
                 <ModalOverlay />
-                <ModalContent>
-                    <ModalHeader>Modal Title</ModalHeader>
+                <ModalContent minW='600px'>
+                    <ModalHeader>View Playlist</ModalHeader>
                     <ModalCloseButton />
-                    <ModalBody>
+                    <ModalBody minW='600px' maxH='600px'>
+                        {isLoading ? <Spinner /> : (
+                            <>
+                                <HStack mb={10}>
+                                    <Image src={data?.data?.images[0].url} w={150} alt={data?.data?.name} />
+                                    <VStack alignItems={'flex-start'}>
+                                        <Heading>{data?.data?.name}</Heading>
+                                        <Text>{data?.data?.description}</Text>
+                                    </VStack>
+                                </HStack>
+                                <VStack overflowY={'scroll'} w="100%" maxH={'400px'}>
+                                    {data?.data?.tracks.items.map((item, index) => (
+                                        <Box w='100%' key={index}>
+                                            <HStack justifyContent={'space-between'} w='95%'>
+                                                <HStack>
+                                                    <Image src={item.track.album.images[0].url} w={50} alt={item.track.name}></Image>
+                                                    <VStack alignItems={'flex-start'}>
+                                                        <Text textAlign={'left'} fontWeight={700}>{item.track.name}</Text>
+                                                        <Text>{reduceArtists(item.track.artists)}</Text>
+                                                    </VStack>
+                                                </HStack>
+                                                <PrimaryButton text="Add to queue" onClick={async () => {
+                                                    await addSongToQueue.mutateAsync({
+                                                        userId,
+                                                        songUri: item.track.uri
+                                                    });
 
+                                                    if (socket) {
+                                                        socket.emit("refresh-jam", { queueId: queueId })
+                                                    }
+
+                                                    toast({
+                                                        colorScheme: 'green',
+                                                        variant: 'solid',
+                                                        title: 'Success',
+                                                        description: `${item.track.name} - ${reduceArtists(item.track.artists)} has been added to the queue`,
+                                                        position: 'top',
+                                                        isClosable: true
+
+                                                    })
+                                                }}></PrimaryButton>
+                                            </HStack>
+                                        </Box>
+                                    ))}
+                                </VStack>
+                            </>
+                        )}
                     </ModalBody>
 
                     <ModalFooter>
-                        <Button colorScheme='blue' mr={3} onClick={onClose}>
-                            Close
-                        </Button>
-                        <Button variant='ghost'>Secondary Action</Button>
+                        <SecondaryButton onClick={onClose} text="Close"/>
                     </ModalFooter>
                 </ModalContent>
             </Modal>
@@ -78,9 +162,10 @@ const PlaylistItem: React.FC<PlaylistItemProps> = ({ playlist }) => {
 interface PlaylistProps {
     playlist: PlaylistResponse | null;
     user: User | null;
+    queue: Queue | null;
 }
 
-export default function Playlist({ playlist, user }: PlaylistProps) {
+export default function Playlist({ playlist, user, queue }: PlaylistProps) {
     const hasNoSongs = playlist && playlist.total == 0;
 
     return (
@@ -121,7 +206,7 @@ export default function Playlist({ playlist, user }: PlaylistProps) {
                     spacingX="20px"
                 >
                     {playlist?.items.map((el) => (
-                        <PlaylistItem playlist={el} key={el.uri} />
+                        <PlaylistItem playlist={el} key={el.uri} userId={user?.id ?? ''} queueId={queue?.queueId.toString() ?? ''}/>
                     ))}
                 </SimpleGrid>
             )}
@@ -140,11 +225,14 @@ export const getServerSideProps = requireAuth(async (context) => {
     const account = await getAccount(sub);
     const playlists = await getPlaylists(account?.providerAccountId, sub);
     const serializedPlaylist = playlists ? serialize(playlists) : null;
+    const queue = await getQueueByHostId(sub);
+    const serializedQueue = serialize(queue);
 
     return {
         props: {
             playlist: serializedPlaylist,
             user: session?.user ?? null,
+            queue: serializedQueue?.data ?? null
         },
     };
 });

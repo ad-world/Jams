@@ -1,5 +1,5 @@
 import { addSongToQueue, deleteHostQueue, deleteRequestFromQueue, getRequestQueue } from '@/lib/queue';
-import { acceptSong, getQueue, search } from '@/lib/spotify';
+import { acceptSong, getPlaylist, getQueue, search } from '@/lib/spotify';
 import { z } from 'zod';
 import { procedure, router } from '../trpc';
 import { AddSongRequest } from '@/types/requsts';
@@ -97,6 +97,18 @@ export const appRouter = router({
             const { queueId, requestId } = opts.input;
 
             await deleteRequestFromQueue(queueId, requestId);
+        }),
+    getPlaylist: procedure
+        .input(
+            z.object({
+                userId: z.string(),
+                playlist: z.string()
+            })
+        ).query(async (opts) => {
+            const { userId, playlist } = opts.input;
+
+            const data = await getPlaylist(playlist, userId);
+            return data;
         })
 
 });

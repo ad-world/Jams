@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unescaped-entities */
 import { signOut } from "next-auth/react";
 import { serialize } from "@/utils/util";
 import Queue from "@/lib/models/queue.model";
@@ -23,6 +24,7 @@ import {
 	VStack,
 	HStack,
 	Divider,
+	useToast,
 } from "@chakra-ui/react";
 import Sidebar from "@/components/sidebar/Sidebar";
 import { HONEY_DEW, LIGHT_BLUE, LIGHT_PURPLE } from "@/utils/colors";
@@ -35,7 +37,7 @@ import { trpc } from "@/utils/trpc";
 import { authOptions } from "../api/auth/[...nextauth]";
 import SongSearch from "@/components/search/SongSearch";
 import { reduceArtists } from "@/utils/util";
-import { useEffect, useState } from "react";
+import { ButtonHTMLAttributes, useEffect, useRef, useState } from "react";
 import io from 'socket.io-client'
 import type { Socket } from 'socket.io-client'
 import { UpdateQueueEvent } from "@/types/socket";
@@ -57,34 +59,39 @@ export default function Dashboard({ queue, user, spotifyQueue }: DashboardProps)
 	const { data: spotifyQueueData, refetch: refetchSpotifyQueue } = trpc.getQueue.useQuery({ userId: user?.id ?? '' });
 	const { data: requestQueueData, refetch: refetchQueueData } = trpc.getJamQueue.useQuery({ queueId: queue?.queueId.toString() ?? '' });
 	const response = trpc.logout.useMutation()
+	const addSongToQueue = trpc.acceptSong.useMutation();
 	const deleteRequestFromQueue = trpc.deleteRequestFromQueue.useMutation();
 
-	useEffect(() => {
-		const socketInitializer = async () => {
-			fetch('/api/socket').finally(() => {
-				socket = io()
-
-				socket.on('connect', () => {
-					console.log('connect')
-				})
-
-				socket.on('reload-queue', (data: UpdateQueueEvent) => {
-					if (data.queueId === queue?.queueId.toString()) {
-						refetchQueueData();
-					}
-				});
-			})
-		}
-
-		socketInitializer();
-	// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [])
-
+	const inviteFriendsRef = useRef<HTMLButtonElement>();
 	const [displayedQueue, setDisplayedQueue] = useState<QueueResponse | null>(spotifyQueue);
 	const [displayedRequestQueue, setDisplayedRequestQueue] = useState<Queue | null>(queue);
 	const emptyQueue = displayedQueue?.queue.length === 0;
+	const toast = useToast();
 
-	const addSongToQueue = trpc.acceptSong.useMutation();
+	const copyLinkToClipboard = async (sessionCode?: number) => {
+		await navigator.clipboard.writeText(window.location.origin + '/jams/' + sessionCode);
+		toast({
+			title: 'Success',
+			colorScheme: 'green',
+			variant: 'solid',
+			description: 'Jam link copied to the clipboard.',
+			isClosable: true,
+			position: 'top'
+		})
+	}
+
+	const copyCodeToClipboard = async (sessionCode?: number) => {
+		await navigator.clipboard.writeText(sessionCode?.toString() ?? '');
+		toast({
+			title: 'Success',
+			colorScheme: 'green',
+			variant: 'solid',
+			description: 'Jam code copied to the clipboard.',
+			isClosable: true,
+			position: 'top'
+		})
+	}
+
 
 	const logout = (hostId: string) => {
 		response.mutate({ hostId });
@@ -122,19 +129,40 @@ export default function Dashboard({ queue, user, spotifyQueue }: DashboardProps)
 		}
 	}, [requestQueueData, queue])
 
+	useEffect(() => {
+		const socketInitializer = async () => {
+			fetch('/api/socket').finally(() => {
+				socket = io()
+
+				socket.on('connect', () => {
+                    console.log('Connected to websocket server');
+				})
+
+				socket.on('reload-queue', (data: UpdateQueueEvent) => {
+					if (data.queueId === queue?.queueId.toString()) {
+						refetchQueueData();
+					}
+				});
+			})
+		}
+
+		socketInitializer();
+	// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [])
+
 	return (
 		<SessionLayout user={user}>
 			<HStack minW='100%' bgColor="whiteAlpha.400" p={4} >
 				<SongSearch userId={user?.id ?? ''} mx='auto' onChoose={chooseSong} />
 				<Menu >
-					<MenuButton as={Button} rightIcon={<ChevronDownIcon />}>
+					<MenuButton ref={inviteFriendsRef} as={Button} rightIcon={<ChevronDownIcon />}>
 						Invite
 					</MenuButton>
 					<MenuList>
 						<Heading m={3} size='sm'>Session Code: {queue?.sessionCode}</Heading>
 						<MenuDivider></MenuDivider>
-						<MenuItem>Copy session code to clipboard</MenuItem>
-						<MenuItem>Copy session link to clipboard</MenuItem>
+						<MenuItem onClick={async () => await copyCodeToClipboard(queue?.sessionCode)}>Copy session code to clipboard</MenuItem>
+						<MenuItem onClick={async () => await copyLinkToClipboard(queue?.sessionCode)}>Copy session link to clipboard</MenuItem>
 						<MenuDivider></MenuDivider>
 						<MenuItem onClick={() => logout(user?.id ?? '')}>Logout</MenuItem>
 					</MenuList>
@@ -182,10 +210,7 @@ export default function Dashboard({ queue, user, spotifyQueue }: DashboardProps)
 								<Center h='100%'>
 									<VStack>
 										<Text color={'gray.600'} textAlign='center' width="200px" size='sm'>No song requests yet.</Text>
-										{
-											// todo: make this button do something
-										}
-										<SecondaryButton text="Invite friends"></SecondaryButton>
+										<SecondaryButton text="Invite friends" onClick={() => inviteFriendsRef?.current?.click()}></SecondaryButton>
 									</VStack>
 								</Center>
 							) : (
@@ -204,11 +229,7 @@ export default function Dashboard({ queue, user, spotifyQueue }: DashboardProps)
 													<HStack gap={4} mr={2}>
 														<Button variant={'outline'} colorScheme="green" onClick={() => {
 															acceptSongFromRequest(item)
-															if(!socket) console.log('socket doesnt exist')
-															else {
-																console.log(socket);
-																socket.emit('refresh-jam', { queueId: queue?.queueId })
-															}
+															socket?.emit('refresh-jam', { queueId: queue?.queueId })
 														}}>Accept</Button>
 														<Button
 															variant={'outline'}
@@ -218,8 +239,7 @@ export default function Dashboard({ queue, user, spotifyQueue }: DashboardProps)
 																queueId: queue?.queueId.toString() ?? '',
 																requestId: item.requestId.toString()
 															})
-															if(!socket) console.log('socket doesnt exist') 
-															socket.emit('refresh-jam', { queueId: queue?.queueId })}}
+															socket?.emit('refresh-jam', { queueId: queue?.queueId })}}
 														>
 															Reject
 														</Button>
@@ -253,6 +273,9 @@ export default function Dashboard({ queue, user, spotifyQueue }: DashboardProps)
 					<Box bgColor={HONEY_DEW} rounded="2xl" p={6} minW="250px" height="100%">
 						<Heading size="md">Our Recommendations</Heading>
 						<Divider />
+						<Center h='100%'>
+							Do not look here yet I'm working on it
+						</Center>
 					</Box>
 				</GridItem>
 			</Grid>

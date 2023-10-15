@@ -3,6 +3,7 @@ import {
   QueueResponse,
   SpotifySearchResponse,
   TransformedSearchResponse,
+  SinglePlaylistResponse
 } from "@/types/spotify";
 import { trackSearchTransformer } from "@/utils/transformers";
 import { authFetch } from "@/utils/fetcher";
@@ -25,7 +26,7 @@ export const search = async (
         "GET"
       );
 
-      if(response.data) {
+      if (response.data) {
         return trackSearchTransformer(response.data);
       } else {
         return null;
@@ -53,6 +54,17 @@ export const getPlaylists = async (
     return null;
   }
 };
+
+export const getPlaylist = async (playlist?: string, userId?: string) => {
+  try {
+    const url = `${process.env.SPOTIFY_API}/playlists/${playlist}`;
+    const response = await authFetch<SinglePlaylistResponse>(userId, url, 'GET');
+
+    return response;
+  } catch (err) {
+    console.error(err);
+  }
+}
 
 export const acceptSong = async (songUri: string, userId: string) => {
   try {

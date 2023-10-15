@@ -9,10 +9,10 @@ const publicNavigationConfig = (sessionCode: number): Array<NavConfig> => ([
         title: "Playlists",
         href: `/jams/${sessionCode}/playlists`
     },
-    {
-        title: "Explore",
-        href: `/jams/${sessionCode}/explore`
-    }
+    // {
+    //     title: "Explore",
+    //     href: `/jams/${sessionCode}/explore`
+    // }
 ])
 
 export default publicNavigationConfig;

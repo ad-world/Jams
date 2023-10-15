@@ -7,7 +7,7 @@ import { QueueResponse, SingleTransformedSearchResponse } from "@/types/spotify"
 import { trpc } from "@/utils/trpc";
 import { reduceArtists, serialize  } from "@/utils/util";
 import { ChevronDownIcon } from "@chakra-ui/icons";
-import { Center, Heading, VStack, HStack, Menu, MenuButton, Button, MenuList, MenuDivider, MenuItem, Grid, GridItem, Box, Divider, Image, Text } from "@chakra-ui/react";
+import { Center, Heading, VStack, HStack, Menu, MenuButton, Button, MenuList, MenuDivider, MenuItem, Grid, GridItem, Box, Divider, Image, Text, useToast } from "@chakra-ui/react";
 import { GetServerSidePropsContext } from "next";
 import { useEffect, useState } from "react";
 import PublicLayout from "@/components/layouts/PublicLayout";
@@ -31,6 +31,31 @@ export default function Session({ code, queue, spotifyQueue }: SessionProps) {
     const { data: spotifyQueueData, refetch: refetchSpotifyQueue } = trpc.getQueue.useQuery({ userId: queue?.hostId.toString() ?? '' })
     const [displayedRequestQueue, setDisplayedRequestQueue] = useState<Queue | null>(queue);
     const [displayedQueue, setDisplayedQueue] = useState<QueueResponse | null>(spotifyQueue);
+    const toast = useToast();
+
+    const copyLinkToClipboard = async (sessionCode?: number) => {
+		await navigator.clipboard.writeText(window.location.origin + '/jams/' + sessionCode);
+		toast({
+			title: 'Success',
+			colorScheme: 'green',
+			variant: 'solid',
+			description: 'Jam link copied to the clipboard.',
+			isClosable: true,
+			position: 'top'
+		})
+	}
+
+	const copyCodeToClipboard = async (sessionCode?: number) => {
+		await navigator.clipboard.writeText(sessionCode?.toString() ?? '');
+		toast({
+			title: 'Success',
+			colorScheme: 'green',
+			variant: 'solid',
+			description: 'Jam code copied to the clipboard.',
+			isClosable: true,
+			position: 'top'
+		})
+	}
 
     useEffect(() => {
         if (requestQueueData != undefined && queue != null) {
@@ -65,12 +90,11 @@ export default function Session({ code, queue, spotifyQueue }: SessionProps) {
                 });
 
                 socket.on('refresh-jam', (data: UpdateQueueEvent) => {
-                    console.log(data)
                     if(data.queueId === queue?.queueId.toString()) {
-                        refetchQueueData();
-                        refetchSpotifyQueue();
-                    } else {
-                        console.log('not the same?');
+                        setTimeout(() => {
+                            refetchQueueData();
+                            refetchSpotifyQueue();
+                        }, 1000);
                     }
                 })
 
@@ -123,8 +147,8 @@ export default function Session({ code, queue, spotifyQueue }: SessionProps) {
                     <MenuList>
                         <Heading m={3} size='sm'>Session Code: {queue?.sessionCode}</Heading>
                         <MenuDivider></MenuDivider>
-                        <MenuItem>Copy session code to clipboard</MenuItem>
-                        <MenuItem>Copy session link to clipboard</MenuItem>
+                        <MenuItem onClick={async () => copyCodeToClipboard(code)}>Copy session code to clipboard</MenuItem>
+                        <MenuItem onClick={async () => copyLinkToClipboard(code)}>Copy session link to clipboard</MenuItem>
                     </MenuList>
                 </Menu>
             </HStack>
@@ -185,8 +209,8 @@ export default function Session({ code, queue, spotifyQueue }: SessionProps) {
 													<HStack>
 														<Image src={item.image} w={50} alt={`${item.name} Image`}></Image>
 														<VStack alignItems="flex-start">
-															<Text textAlign={'left'} fontWeight={700}>{item.name}</Text>
-															<Text>{item.artists}</Text>
+                                                                <Text textAlign={'left'} fontWeight={700}>{item.name}</Text>
+                                                                <Text>{item.artists}</Text>
 														</VStack>
 													</HStack>
 												</HStack>

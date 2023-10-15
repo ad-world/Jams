@@ -113,3 +113,29 @@ export type QueueResponse = {
   currently_playing: SpotifyTrackItemsResponse | null;
   queue: Array<SpotifyTrackItemsResponse>;
 };
+
+export type PlaylistTrackObject = {
+  added_at: string,
+  is_local: boolean,
+  track: {
+    album: AlbumObject,
+    artists: ArtistsObject[],
+    duration_ms: number,
+    explicit: boolean,
+    href: string,
+    id: string,
+    name: string,
+    type: string,
+    uri: string
+  }
+}
+
+export type SinglePlaylistResponse = {
+  collaborative: boolean,
+  description: string,
+  href: string,
+  id: string,
+  images: ImageObject[],
+  name: string,
+  tracks: InternalSpotifySearchResponse<PlaylistTrackObject>
+}

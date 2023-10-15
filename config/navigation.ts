@@ -9,10 +9,10 @@ const navigationConfig: Array<NavConfig> = [
         title: "Playlists",
         href: "/dashboard/playlists"
     },
-    {
-        title: "Explore",
-        href: "/dashboard/explore"
-    }
+    // {
+    //     title: "Explore",
+    //     href: "/dashboard/explore"
+    // }
 ]
 
 export default navigationConfig;
