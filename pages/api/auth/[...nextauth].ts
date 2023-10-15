@@ -28,6 +28,7 @@ export const authOptions: NextAuthOptions = {
   ],
   callbacks: {
     async session({ session, user }) {
+      console.log(session, user);
       if (!user) {
         return session;
       }
@@ -93,6 +94,7 @@ declare module "next-auth/core/types" {
   interface Session {
     user: {
       id?: string;
+      isPremium?: boolean;
     } & DefaultSession["user"];
   }
 }

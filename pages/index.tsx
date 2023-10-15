@@ -2,13 +2,30 @@ import PrimaryButton from "@/components/buttons/PrimaryButton";
 import SecondaryButton from "@/components/buttons/SecondaryButton";
 import { LIGHT_BLUE } from "@/utils/colors";
 import { ArrowBackIcon } from "@chakra-ui/icons";
-import { Box, Center, FormControl, FormLabel, Heading, HStack, Input, Text, VStack } from "@chakra-ui/react";
+import { Box, Center, FormControl, FormLabel, Heading, HStack, Input, Text, useToast, VStack } from "@chakra-ui/react";
 import { signIn } from "next-auth/react";
-import { useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 
 export default function Home() {
   const [isJoiningSession, setIsJoiningSession] = useState<boolean>(false);
   const [sessionCode, setSessionCode] = useState<string>('');
+  const params = useSearchParams();
+  const toast = useToast();
+  
+  useEffect(() => {
+    if (params.get('error')) {
+      toast({
+        title: 'Error',
+        description: 'You must have a premium account to use this service.',
+        colorScheme: 'red',
+        variant: 'solid',
+        isClosable: true,
+        position: 'top'
+      })
+    }
+  }, [params, toast])
+  
 
   const joinSession = (sessionCode: string) => location.href = `/jams/${sessionCode}`;
 

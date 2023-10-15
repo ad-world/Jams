@@ -3,7 +3,8 @@ import {
   QueueResponse,
   SpotifySearchResponse,
   TransformedSearchResponse,
-  SinglePlaylistResponse
+  SinglePlaylistResponse,
+  SpotifyUser
 } from "@/types/spotify";
 import { trackSearchTransformer } from "@/utils/transformers";
 import { authFetch } from "@/utils/fetcher";
@@ -90,3 +91,17 @@ export const getQueue = async (
     return null;
   }
 };
+
+export const checkPremium = async (
+  userId?: string
+): Promise<boolean> => {
+  try {
+    const url = `${process.env.SPOTIFY_API}/me`
+    const response = await authFetch<SpotifyUser>(userId, url, "GET");
+    
+    return response.data?.product === "premium";
+  } catch (err) {
+    console.error(err);
+    return false;
+  }
+}

@@ -65,7 +65,7 @@ export default function Dashboard({ queue, user, spotifyQueue }: DashboardProps)
 	const inviteFriendsRef = useRef<HTMLButtonElement>();
 	const [displayedQueue, setDisplayedQueue] = useState<QueueResponse | null>(spotifyQueue);
 	const [displayedRequestQueue, setDisplayedRequestQueue] = useState<Queue | null>(queue);
-	const emptyQueue = displayedQueue?.queue.length === 0;
+	const emptyQueue = displayedQueue?.queue?.length === 0;
 	const toast = useToast();
 
 	const copyLinkToClipboard = async (sessionCode?: number) => {
@@ -206,7 +206,7 @@ export default function Dashboard({ queue, user, spotifyQueue }: DashboardProps)
 						<Heading size="md">Song Requests</Heading>
 						<Divider />
 						<Box py={4} h='100%'>
-							{displayedRequestQueue?.requests.length == 0 ? (
+							{displayedRequestQueue?.requests?.length == 0 ? (
 								<Center h='100%'>
 									<VStack>
 										<Text color={'gray.600'} textAlign='center' width="200px" size='sm'>No song requests yet.</Text>

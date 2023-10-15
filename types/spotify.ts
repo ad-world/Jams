@@ -139,3 +139,14 @@ export type SinglePlaylistResponse = {
   name: string,
   tracks: InternalSpotifySearchResponse<PlaylistTrackObject>
 }
+
+export type SpotifyUser = {
+  country: string;
+  display_name: string;
+  email: string;
+  href: string;
+  id: string;
+  product: string;
+  type: string;
+  uri: string;
+}
