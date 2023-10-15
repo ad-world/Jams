@@ -7,7 +7,10 @@ Jams is a web application that allows users to create collaborative queues where
 
 ## Deployment
 
-This project is not currently deployed. I will update this section once that changes. 
+This app is deployed at https://jams-r63m.onrender.com/.
+You need to be on a whitelist to access it (because Spotify sucks lol). I'm trying to get an API Quota extension (so that the app is publicly available) but I'm not hopeful.
+Let me know if you'd like to be on the whitelist
+
 ## Usage
 
 For local development, you will need the following things
