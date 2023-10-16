@@ -108,7 +108,7 @@ const PlaylistItem: React.FC<PlaylistItemProps> = ({ playlist, userId, queueId }
                                         <Box w='100%' key={index}>
                                             <HStack justifyContent={'space-between'} w='95%'>
                                                 <HStack>
-                                                    <Image src={item.track.album.images[0].url} w={50} alt={item.track.name}></Image>
+                                                    <Image src={item.track?.album?.images[0].url ?? ''}  w={50} alt={item.track.name}></Image>
                                                     <VStack alignItems={'flex-start'}>
                                                         <Text textAlign={'left'} fontWeight={700}>{item.track.name}</Text>
                                                         <Text>{reduceArtists(item.track.artists)}</Text>

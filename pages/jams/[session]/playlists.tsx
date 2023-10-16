@@ -50,6 +50,7 @@ import Queue from "@/lib/models/queue.model";
 import { UpdateQueueEvent } from "@/types/socket";
 import { io, Socket } from "socket.io-client";
 import { useEffect } from "react";
+import { GetServerSidePropsContext } from "next";
 
 let socket: Socket;
 
@@ -110,7 +111,7 @@ const PlaylistItem: React.FC<PlaylistItemProps> = ({ playlist, userId, queueId }
                                     <Box w='100%' key={index}>
                                         <HStack justifyContent={'space-between'} w='95%'>
                                             <HStack>
-                                                <Image src={item.track.album.images[0].url} w={50} alt={item.track.name}></Image>
+                                                <Image src={item.track?.album?.images[0].url ?? ''} w={50} alt={item.track.name}></Image>
                                                 <VStack alignItems={'flex-start'}>
                                                     <Text textAlign={'left'} fontWeight={700}>{item.track.name}</Text>
                                                     <Text>{reduceArtists(item.track.artists)}</Text>
@@ -121,7 +122,7 @@ const PlaylistItem: React.FC<PlaylistItemProps> = ({ playlist, userId, queueId }
                                                     queueId: queueId,
                                                     name: item.track.name,
                                                     uri: item.track.uri,
-                                                    image: item.track.album.images[0].url,
+                                                    image: item.track?.album?.images[0].url ?? '',
                                                     artists: item.track.artists,
                                                     duration_ms: item.track.duration_ms,
                                                 });
@@ -221,7 +222,7 @@ export default function Playlist({ playlist, userId, sessionCode, queue }: Playl
     );
 }
 
-export const getServerSideProps = requireAuth(async (context) => {
+export const getServerSideProps = async (context: GetServerSidePropsContext) => {
     const session = Number(context.params?.session);
     const queue = await getQueueFromCode(session);
 
@@ -239,4 +240,4 @@ export const getServerSideProps = requireAuth(async (context) => {
             userId,
         },
     };
-});
+};

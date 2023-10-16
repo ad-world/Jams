@@ -35,7 +35,7 @@ export default function Home() {
 			<Head>
 				<title>Jams</title>
 				<meta property="og:title" content="Welcome to Jams" key="title" />
-				<meta name="description" content="A platform for creating collaborative queue's with ease"></meta>
+				<meta name="description" content="A platform for creating collaborative queue's with easen"></meta>
 				<meta name="author" content="Aryaman Dhingra"></meta>
 			</Head>
 			<Center minH='100vh' minW='100vw' bgColor={LIGHT_BLUE}>
