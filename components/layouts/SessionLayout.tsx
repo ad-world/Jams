@@ -28,8 +28,8 @@ const SessionLayout: React.FC<SessionLayoutProps> = ({ children, user, ...props 
 				<meta name="description" content={`Join ${user?.name}'s Jam`}></meta>
 				<meta name="author" content="Aryaman Dhingra"></meta>
 			</Head>
-			<Box minH={"100vh"} minW={"100vw"}>
-				<Flex minH={"100vh"}>
+			<Box minH={"100vh"} minW={"100vw"} maxH="100vh">
+				<Flex minH={"100vh"} maxH="100vh">
 					<Box w="300px" p={8}>
 						<VStack h='100%' justifyContent={'space-between'}>
 							<div>

@@ -168,13 +168,13 @@ export default function Dashboard({ queue, user, spotifyQueue }: DashboardProps)
 					</MenuList>
 				</Menu>
 			</HStack>
-			<Grid templateColumns='repeat(4, 1fr)' height={'80%'} mt={16} gap={12} templateRows='repeat(2, 1fr)' width={'80%'} mx='auto'>
+			<Grid templateColumns='repeat(4, 1fr)' height={'80%'} mt={8} gap={12} templateRows='repeat(2, 1fr)' width={'80%'} mx='auto'>
 				<GridItem rowSpan={2}>
 					<Box bgColor={HONEY_DEW} rounded="2xl" p={6} minW="250px" height="100%" maxHeight='100%'>
 						<Heading size="md">Your Queue</Heading>
 						<Divider />
 						<Box py={4}>
-							<div style={{ height: '600px', maxHeight: '600px', overflowY: 'auto' }}>
+							<div style={{ height: '90%', maxHeight: '90%', overflowY: 'auto' }}>
 								{emptyQueue ? (
 									<Center h='100%'>
 										<VStack>
@@ -214,7 +214,7 @@ export default function Dashboard({ queue, user, spotifyQueue }: DashboardProps)
 									</VStack>
 								</Center>
 							) : (
-								<div style={{ height: '600px', maxHeight: '600px', overflowY: 'auto' }}>
+								<div style={{ height: '90%', maxHeight: '90%', overflowY: 'auto' }}>
 									<VStack maxHeight={'100%'} scrollBehavior='auto' minW='600px'>
 										{displayedRequestQueue?.requests.map(item => (
 											<Box w='100%' key={item.requestId.toString()}>
